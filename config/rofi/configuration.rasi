@@ -1,0 +1,58 @@
+*{
+	border: 0;
+	margin: 0;
+	padding: 0;
+	spacing: 0;
+	
+	purple: #6E11C0;
+	bg: #1C2023;
+	bg-alt: #0f0f0f;
+	fg: #ffffff;
+	fg-alt: #f0f0f0;
+
+	background-color: @bg;
+	text-color: @fg;
+	border-color: @purple;
+}
+
+window {
+	border: 1px;
+	padding: 10px;
+}
+
+mainbox{
+	children: [inputbar, listview];
+}
+
+inputbar {
+	children: [entry];
+}
+
+entry {
+	padding: 10px;
+}
+
+listview {
+	lines: 10;
+	scrollbar: true;
+}
+
+scrollbar {
+	background-color: @bg-alt;
+	handle-color: @fg;
+	margin: 0 0 0 10px;
+}
+
+element {
+	children: [element-text];
+}
+
+element-text {
+	padding: 10px;
+}
+
+element-text selected {
+	background-color: @bg-alt;
+	text-color: @fg;
+}
+

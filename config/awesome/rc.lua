@@ -352,7 +352,7 @@ globalkeys = gears.table.join(
 
 
     awful.key({ modkey }, "r", function()
-	    awful.spawn.with_shell("rofi -show drun &>> /tmp/rofi.log")
+	    awful.spawn.with_shell("rofi -show drun -theme ~/.config/rofi/configuration.rasi &>> /tmp/rofi.log")
     end,
 	{description = "run rofi in  drun mode", group = "launcher"}),
 
