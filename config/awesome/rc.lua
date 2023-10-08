@@ -21,6 +21,7 @@ require("awful.hotkeys_popup.keys")
 -- Load Debian menu entries
 local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
+local lain = require("lain")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -49,7 +50,7 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
+beautiful.init(string.format("%s/.config/awesome/themes/%s/theme.lua", os.getenv("HOME"), "custom"))
 
 -- This is used later as the default terminal and editor to run.
 terminal = "alacritty"
@@ -116,6 +117,8 @@ end
 
 mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
                                      menu = mymainmenu })
+-- config gaps
+beautiful.useless_gap = 5
 
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
@@ -126,8 +129,42 @@ mykeyboardlayout = awful.widget.keyboardlayout()
 
 -- {{{ Wibar
 -- Create a textclock widget
-mytextclock = wibox.widget.textclock()
+local mytextclock = wibox.widget {
+	format = "%m/%d/%Y %H:%M:%S",
+	widget = wibox.widget.textclock,
+	refresh = 1
+}
 
+local memUsageWidget = lain.widget.mem{
+	settings = function()
+		widget:set_markup(mem_now.perc ..  "%🐏")
+	end
+} 
+
+local cpuUsageWidget = lain.widget.cpu{
+	settings = function() 
+		widget:set_markup(cpu_now.usage .. "%🔲")
+	end
+}
+
+local iface = "enp1s0" --edit to match interface
+local ipWidget = awful.widget.watch(
+	'bash -c \'ip -f inet addr show ' .. iface .. ' | grep -Po \"((\\d{1,3}\\.?){4}\\/\\d{1,2})\"\'', 
+	10, 
+	function(widget, stdout)
+		if stdout == nil or stdout == '' then
+			naughty.notify({text='Correct your interface in rc.lua'})
+		end
+
+		widget:set_text(iface .. ": " .. stdout)
+	end
+)
+
+local myspacer = wibox.widget {
+	widget = wibox.widget.textbox,
+	text = "   "
+}
+	
 -- Create a wibox for each screen and add it
 local taglist_buttons = gears.table.join(
                     awful.button({ }, 1, function(t) t:view_only() end),
@@ -206,13 +243,24 @@ awful.screen.connect_for_each_screen(function(s)
         filter  = awful.widget.taglist.filter.all,
         buttons = taglist_buttons
     }
+    beautiful.taglist_bg_focus = "#00000070"
 
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist {
         screen  = s,
         filter  = awful.widget.tasklist.filter.currenttags,
-        buttons = tasklist_buttons
+        buttons = tasklist_buttons,
     }
+    -- Tasklist styling
+    beautiful.tasklist_disable_icon = true -- hide icons in tasklist
+
+    local colTrans = "#ffffff00"
+    beautiful.tasklist_fg_normal = colTrans 
+    beautiful.tasklist_bg_normal = colTrans 
+    beautiful.tasklist_fg_focus = colTrans 
+    beautiful.tasklist_bg_focus = colTrans 
+    beautiful.tasklist_fg_minimize = colTrans
+    beautiful.tasklist_bg_minimize = colTrans
 
     -- Create the wibox
     s.mywibox = awful.wibar({ position = "top", screen = s })
@@ -228,11 +276,18 @@ awful.screen.connect_for_each_screen(function(s)
         },
         s.mytasklist, -- Middle widget
         { -- Right widgets
-            layout = wibox.layout.fixed.horizontal,
-            mykeyboardlayout,
-            wibox.widget.systray(),
+            layout = 
+	    wibox.layout.fixed.horizontal,
+	    wibox.widget.systray(),
+	    myspacer,
+	    ipWidget,
+	    myspacer,
+            cpuUsageWidget,
+	    myspacer,
+            memUsageWidget,
+	    myspacer,
             mytextclock,
-            s.mylayoutbox,
+	    myspacer
         },
     }
 end)
@@ -240,7 +295,7 @@ end)
 
 -- {{{ Mouse bindings
 root.buttons(gears.table.join(
-    awful.button({ }, 3, function () mymainmenu:toggle() end),
+    --awful.button({ }, 3, function () mymainmenu:toggle() end),
     awful.button({ }, 4, awful.tag.viewnext),
     awful.button({ }, 5, awful.tag.viewprev)
 ))
@@ -330,8 +385,13 @@ globalkeys = gears.table.join(
               {description = "restore minimized", group = "client"}),
 
     -- Prompt
-    awful.key({ modkey },            "r",     function () awful.screen.focused().mypromptbox:run() end,
-              {description = "run prompt", group = "launcher"}),
+    --awful.key({ modkey },            "r",     function () awful.screen.focused().mypromptbox:run() end,
+    --          {description = "run prompt", group = "launcher"}),
+
+    awful.key({ modkey }, "r", function()
+	    awful.spawn.with_shell("rofi -show drun &>> /tmp/rofi.log")
+    end,
+	{description = "run rofi in  drun mode", group = "launcher"}),
 
     awful.key({ modkey }, "x",
               function ()
@@ -509,7 +569,7 @@ awful.rules.rules = {
 
     -- Add titlebars to normal clients and dialogs
     { rule_any = {type = { "normal", "dialog" }
-      }, properties = { titlebars_enabled = true }
+      }, properties = { titlebars_enabled = false}
     },
 
     -- Set Firefox to always map on the tag named "2" on screen 1.
