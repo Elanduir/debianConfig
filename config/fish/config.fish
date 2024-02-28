@@ -4,3 +4,5 @@ if status is-interactive
 end
 
 thefuck --alias | source
+alias ivyC=ivyMaster.sh
+fish_add_path "/home/fabian/dev/private/util"
