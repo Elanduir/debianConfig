@@ -1,0 +1,11 @@
+Host github.com
+        User git
+        Hostname github.com
+        PreferredAuthentications publickey
+        IdentityFile /home/fhe/.ssh/axonivy
+
+Host elanduir
+        User git
+        Hostname github.com
+        PreferredAuthentications publickey
+        IdentityFile /home/fhe/.ssh/elanduir

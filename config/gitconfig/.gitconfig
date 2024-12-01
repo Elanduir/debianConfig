@@ -1,0 +1,11 @@
+[user]
+	name = Fabian Heuberger
+
+[includeIf "gitdir:~/dev/axonivy/"]
+	path = ~/dev/axonivy/.gitconfig
+
+[includeIf "gitdir:~/dev/private/"]
+	path = ~/dev/private/.gitconfig
+
+[core]
+	editor = vim
